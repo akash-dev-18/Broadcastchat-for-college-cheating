@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Group Chat — Plain WebSocket</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- JOIN SCREEN -->
+    <section id="join-screen" class="card join-card">
+      <h1>💬 Group Chat</h1>
+      <p class="subtitle">Pick a name and join. Anyone with the link can join.</p>
+      <form id="join-form">
+        <input
+          id="name-input"
+          type="text"
+          placeholder="Your name (e.g. Alex)"
+          maxlength="20"
+          minlength="2"
+          autocomplete="nickname"
+          required
+        />
+        <button type="submit">Join chat →</button>
+      </form>
+      <p id="join-error" class="error" hidden></p>
+      <p class="hint">No login. Just plain WebSocket.</p>
+    </section>
+
+    <!-- CHAT SCREEN -->
+    <section id="chat-screen" class="chat-layout" hidden>
+      <aside class="sidebar">
+        <h2>Online <span id="online-count" class="badge">0</span></h2>
+        <ul id="users"></ul>
+        <div class="me-box">
+          <span class="me-label">You are</span>
+          <strong id="me-name">—</strong>
+          <button id="leave-btn" class="ghost" title="Leave and pick a new name">Leave</button>
+        </div>
+      </aside>
+
+      <main class="chat-main">
+        <header class="chat-header">
+          <div>
+            <strong>🌍 Group Chat</strong>
+            <span id="status" class="status offline">connecting…</span>
+          </div>
+          <button id="leave-btn-mobile" class="ghost">Leave</button>
+        </header>
+
+        <div id="messages" class="messages"></div>
+        <div id="typing" class="typing"></div>
+
+        <form id="chat-form" class="composer">
+          <input
+            id="msg-input"
+            type="text"
+            placeholder="Type a message… (Enter to send)"
+            maxlength="500"
+            autocomplete="off"
+          />
+          <button type="submit">Send</button>
+        </form>
+      </main>
+    </section>
+
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
