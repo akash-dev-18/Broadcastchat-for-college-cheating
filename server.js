@@ -55,6 +55,7 @@ const wss = new WebSocketServer({ server });
 const clients = new Map(); // ws -> { id, name, color }
 const history = []; // last 100 chat messages
 const MAX_HISTORY = 100;
+const MAX_MSG_LEN = 20000; // ~400+ lines
 
 const COLORS = [
   '#2563eb', '#dc2626', '#059669', '#d97706',
@@ -135,7 +136,7 @@ wss.on('connection', (ws) => {
 
     // ---- CHAT ----
     if (msg.type === 'chat') {
-      const text = String(msg.text || '').trim().slice(0, 500);
+      const text = String(msg.text || '').trim().slice(0, MAX_MSG_LEN);
       if (!text) return;
       const chatMsg = { type: 'chat', id: Date.now() + '-' + me.id, from: me, text, at: Date.now() };
       history.push(chatMsg);

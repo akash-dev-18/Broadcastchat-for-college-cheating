@@ -13,6 +13,7 @@
   const onlineCount = $('online-count');
   const chatForm = $('chat-form');
   const msgInput = $('msg-input');
+  const charCount = $('char-count');
   const typingEl = $('typing');
   const statusEl = $('status');
   const meName = $('me-name');
@@ -47,6 +48,34 @@
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch {}
+    document.body.removeChild(ta);
+  }
+
+  function copyText(text, btn) {
+    const done = () => {
+      const old = btn.textContent;
+      btn.textContent = '✓ Copied';
+      setTimeout(() => (btn.textContent = old), 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => {
+        fallbackCopy(text);
+        done();
+      });
+    } else {
+      fallbackCopy(text);
+      done();
+    }
+  }
+
   function addSystem(text) {
     const div = document.createElement('div');
     div.className = 'system';
@@ -70,11 +99,20 @@
     const time = document.createElement('span');
     time.textContent = fmtTime(at);
 
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'copy-btn';
+    copyBtn.title = 'Copy message';
+    copyBtn.textContent = '⧉ Copy';
+    copyBtn.addEventListener('click', () => copyText(text, copyBtn));
+
     meta.appendChild(name);
     meta.appendChild(time);
+    meta.appendChild(copyBtn);
 
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
+    if (text.length > 600 || text.split('\n').length > 10) bubble.classList.add('long');
     bubble.textContent = text; // textContent = XSS safe
 
     wrap.appendChild(meta);
@@ -211,16 +249,43 @@
     connect(name);
   });
 
-  chatForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+  function sendMessage() {
     const text = msgInput.value.trim();
     if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(JSON.stringify({ type: 'chat', text }));
+    ws.send(JSON.stringify({ type: 'chat', text: text.slice(0, 20000) }));
     msgInput.value = '';
+    autoGrow();
+    updateCount();
     ws.send(JSON.stringify({ type: 'typing', isTyping: false }));
+  }
+
+  function autoGrow() {
+    msgInput.style.height = 'auto';
+    msgInput.style.height = Math.min(msgInput.scrollHeight, 160) + 'px';
+  }
+
+  function updateCount() {
+    const n = msgInput.value.length;
+    charCount.textContent = n.toLocaleString() + ' / 20000';
+    charCount.classList.toggle('full', n >= 20000);
+  }
+
+  chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendMessage();
+  });
+
+  // Enter = send, Shift+Enter = new line
+  msgInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   });
 
   msgInput.addEventListener('input', () => {
+    autoGrow();
+    updateCount();
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
     ws.send(JSON.stringify({ type: 'typing', isTyping: true }));
     clearTimeout(typingTimeout);

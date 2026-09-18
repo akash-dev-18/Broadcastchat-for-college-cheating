@@ -53,16 +53,22 @@
         <div id="messages" class="messages"></div>
         <div id="typing" class="typing"></div>
 
-        <form id="chat-form" class="composer">
-          <input
-            id="msg-input"
-            type="text"
-            placeholder="Type a message… (Enter to send)"
-            maxlength="500"
-            autocomplete="off"
-          />
-          <button type="submit">Send</button>
-        </form>
+        <div class="composer-wrap">
+          <form id="chat-form" class="composer">
+            <textarea
+              id="msg-input"
+              rows="1"
+              placeholder="Type a message… (Enter to send, Shift+Enter for new line)"
+              maxlength="20000"
+              autocomplete="off"
+            ></textarea>
+            <button type="submit">Send</button>
+          </form>
+          <div class="composer-meta">
+            <span>Shift+Enter for new line • up to 400+ lines OK</span>
+            <span id="char-count">0 / 20000</span>
+          </div>
+        </div>
       </main>
     </section>
 
